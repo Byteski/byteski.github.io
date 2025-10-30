@@ -2,36 +2,316 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Website</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>YourName — Home</title>
+  <meta name="description" content="Creator homepage — links, updates, mini‑about." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0a0b10;
+      --panel:#0e111a;
+      --text:#d7e1ff;
+      --muted:#98a2b3;
+      --accent:#7c9eff;
+      --accent-2:#9b6bff;
+      --accent-3:#34d3ff;
+      --glass:rgba(255,255,255,0.06);
+      --border:rgba(255,255,255,0.12);
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:18px;
+      --max:1100px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text); background:radial-gradient(1200px 800px at 20% -10%, #1b1e2b 0%, transparent 60%),
+                                 radial-gradient(1000px 700px at 120% 10%, #13162a 0%, transparent 60%),
+                                 var(--bg);
+      overflow-x:hidden;
+    }
+
+    /* Animated canvas background */
+    #bg-canvas{position:fixed; inset:0; z-index:-2}
+    .glow{
+      position:fixed; inset:-20% -20% auto auto; z-index:-1; filter:blur(60px); opacity:.25;
+      background:conic-gradient(from 180deg, var(--accent), var(--accent-2), var(--accent-3), var(--accent));
+      width:60vmax; height:60vmax; border-radius:50%; mix-blend-mode:screen;
+      animation:spin 20s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Layout */
+    .wrap{max-width:var(--max); margin:0 auto; padding:28px 20px 80px}
+
+    /* Topbar */
+    .topbar{display:flex; align-items:center; justify-content:space-between; gap:14px; position:sticky; top:0; padding:14px 0; backdrop-filter:saturate(140%) blur(8px); z-index:10}
+    .brand{display:flex; align-items:center; gap:12px}
+    .logo{width:38px; height:38px; border-radius:10px; background:
+      radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,.15) 0 40%, transparent 45%),
+      linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 60%, var(--accent-3) 100%);
+      box-shadow:0 6px 22px rgba(124,158,255,.35), inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .brand h1{font-size:18px; margin:0}
+    nav{display:flex; gap:6px; flex-wrap:wrap}
+    .pill{display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border-radius:999px; color:var(--text); text-decoration:none; transition:.2s transform, .2s box-shadow;
+    }
+    .pill:hover{transform:translateY(-2px); box-shadow:0 8px 20px rgba(124,158,255,.18)}
+
+    /* Hero */
+    .hero{display:grid; grid-template-columns:1.1fr .9fr; gap:26px; align-items:center; margin-top:24px}
+    @media (max-width:900px){.hero{grid-template-columns:1fr}}
+    .card{background:var(--glass); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow)}
+    .hero .card{padding:28px}
+    .kicker{font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); font-size:12px}
+    .title{font-size:clamp(28px, 5vw, 48px); line-height:1.07; margin:.35em 0 .2em}
+    .subtitle{color:#c3ccff; opacity:.9}
+    .cta{display:flex; gap:12px; flex-wrap:wrap; margin-top:22px}
+    .btn{display:inline-flex; align-items:center; gap:10px; padding:12px 16px; border-radius:12px; text-decoration:none; border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.04)); color:var(--text); font-weight:600}
+    .btn.primary{background:linear-gradient(180deg, rgba(124,158,255,.35), rgba(124,158,255,.18)); border-color:rgba(124,158,255,.55); box-shadow:0 10px 24px rgba(124,158,255,.25)}
+
+    /* Mini About / Portfolio */
+    .about{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:22px}
+    @media (max-width:900px){.about{grid-template-columns:1fr}}
+    .about .tile{padding:20px}
+    .about h3{margin:0 0 10px}
+    .list{margin:0; padding:0; list-style:none; display:grid; gap:8px}
+    .list li{display:flex; align-items:center; gap:10px; padding:10px; border:1px dashed var(--border); border-radius:12px; background:rgba(255,255,255,.03)}
+
+    /* Sections */
+    section{margin-top:40px}
+    .section-title{font-size:22px; margin:0 0 12px; color:#aebaff}
+    .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+    .panel{padding:20px}
+
+    /* Link cards */
+    .linkcard{display:flex; justify-content:space-between; align-items:center}
+    .linkcard a{color:var(--text); text-decoration:none}
+
+    /* Footer */
+    footer{margin:50px 0 0; padding:20px; color:var(--muted); text-align:center}
+
+    /* Small helpers */
+    .muted{color:var(--muted)}
+    .tag{font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,.04)}
+  </style>
 </head>
 <body>
-  <header>
-    <h1>Welcome to My Website</h1>
-    <p>This site is hosted 100% free with GitHub Pages!</p>
-  </header>
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+  <div class="glow" aria-hidden="true"></div>
 
-  <main>
-    <section>
-      <h2>About Me</h2>
-      <p>I'm a Minecraft creator and YouTuber making cool experiments and videos.</p>
+  <div class="wrap">
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <h1>YourName</h1>
+      </div>
+      <nav>
+        <a class="pill" href="#about">About</a>
+        <a class="pill" href="#updates">Updates</a>
+        <a class="pill" href="#links">Links</a>
+        <a class="pill" href="#contact">Contact</a>
+      </nav>
+    </div>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="card">
+        <div class="kicker">Creator • Developer • Minecraft</div>
+        <h2 class="title">I build weird, beautiful things on the internet.</h2>
+        <p class="subtitle">Experiments, horror mods, redstone oddities, and tools for streamers. This site is self‑hosted on GitHub Pages using my own domain — no paid hosting.</p>
+        <div class="cta">
+          <a class="btn primary" href="#links">See My Links</a>
+          <a class="btn" href="#about">About This Site</a>
+        </div>
+        <div class="about">
+          <div class="tile card">
+            <h3>What I Do</h3>
+            <ul class="list">
+              <li><span class="tag">YouTube</span> Minecraft experiments & short‑form edits</li>
+              <li><span class="tag">Streaming</span> Twitch setups, bots, overlays</li>
+              <li><span class="tag">Modding</span> Forge/Fabric horror, datapacks</li>
+            </ul>
+          </div>
+          <div class="tile card">
+            <h3>Mini Portfolio</h3>
+            <ul class="list">
+              <li>“Bad Apple” in Minecraft (command‑block/particles)</li>
+              <li>Inside‑the‑System mod: jumpscare‑safe build</li>
+              <li>24/7 stream infra without a local PC</li>
+            </ul>
+            <p class="muted" style="margin-top:10px">Full case studies coming soon.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card panel">
+        <h3 class="section-title">Latest Note</h3>
+        <p class="muted" id="note">New template → now with a glowing background & particles. Edit this panel to post quick updates or devlogs.</p>
+        <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap">
+          <span class="tag">HTML</span>
+          <span class="tag">CSS</span>
+          <span class="tag">JavaScript</span>
+          <span class="tag">GitHub Pages</span>
+        </div>
+      </div>
     </section>
 
-    <section>
-      <h2>Projects</h2>
-      <ul>
-        <li>Bad Apple in Minecraft</li>
-        <li>Custom Horror Mods</li>
-        <li>Server Experiments</li>
-      </ul>
+    <!-- Updates / Blog‑like cards (static) -->
+    <section id="updates">
+      <h3 class="section-title">Updates</h3>
+      <div class="grid">
+        <div class="card panel">
+          <div class="linkcard">
+            <div>
+              <strong>v1 — Site goes live</strong>
+              <div class="muted">Deployed on GitHub Pages with custom domain.</div>
+            </div>
+            <a class="pill" href="#">Read</a>
+          </div>
+        </div>
+        <div class="card panel">
+          <div class="linkcard">
+            <div>
+              <strong>Experiment — Cave reverb voice chat</strong>
+              <div class="muted">Forge 1.20.1 test setup & notes.</div>
+            </div>
+            <a class="pill" href="#">Open</a>
+          </div>
+        </div>
+        <div class="card panel">
+          <div class="linkcard">
+            <div>
+              <strong>Guide — Free 24/7 stream stack</strong>
+              <div class="muted">How I automate scenes without leaving my PC on.</div>
+            </div>
+            <a class="pill" href="#">See</a>
+          </div>
+        </div>
+      </div>
     </section>
-  </main>
 
-  <footer>
-    <p>© <span id="year"></span> My Website | Built by Me</p>
-  </footer>
+    <!-- Links -->
+    <section id="links">
+      <h3 class="section-title">Links</h3>
+      <div class="grid">
+        <div class="card panel linkcard">
+          <div>
+            <strong>YouTube</strong>
+            <div class="muted">Shorts, experiments, and devlogs.</div>
+          </div>
+          <a class="btn" href="https://youtube.com" target="_blank" rel="noopener">Visit</a>
+        </div>
+        <div class="card panel linkcard">
+          <div>
+            <strong>Twitch</strong>
+            <div class="muted">Live testing, modding chaos.</div>
+          </div>
+          <a class="btn" href="https://twitch.tv" target="_blank" rel="noopener">Visit</a>
+        </div>
+        <div class="card panel linkcard">
+          <div>
+            <strong>Discord</strong>
+            <div class="muted">Community & collabs.</div>
+          </div>
+          <a class="btn" href="#" target="_blank" rel="noopener">Join</a>
+        </div>
+      </div>
+    </section>
 
-  <script src="script.js"></script>
+    <!-- Contact / About -->
+    <section id="about">
+      <h3 class="section-title">About</h3>
+      <div class="card panel">
+        <p>Hey, I’m <strong>YourName</strong>. I make experimental Minecraft content and small web tools. This site is a lightweight static build (HTML/CSS/JS) deployed on GitHub Pages. No paid hosting, just a custom domain.</p>
+        <p class="muted">Tip: Fork this repo and tweak colors in the <code>:root</code> CSS variables to reskin the entire site.</p>
+      </div>
+    </section>
+
+    <section id="contact">
+      <h3 class="section-title">Contact</h3>
+      <div class="card panel">
+        <p>For collabs, business, or requests: <a href="mailto:hello@yourname.com">hello@yourname.com</a></p>
+      </div>
+    </section>
+
+    <footer>
+      <div>© <span id="year"></span> YourName. Built with ♥ on GitHub Pages.</div>
+    </footer>
+  </div>
+
+  <script>
+    // Dynamic year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Particle field on canvas (lightweight)
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let w, h, particles;
+
+    function resize(){
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+      spawn();
+    }
+
+    function spawn(){
+      const count = Math.min(120, Math.floor((w*h)/25000));
+      particles = Array.from({length: count}, () => ({
+        x: Math.random()*w,
+        y: Math.random()*h,
+        vx: (Math.random()-.5)*0.3,
+        vy: (Math.random()-.5)*0.3,
+        r: Math.random()*1.8+0.4,
+        a: Math.random()*2*Math.PI
+      }));
+    }
+
+    function step(){
+      ctx.clearRect(0,0,w,h);
+      // soft vignette
+      const grd = ctx.createRadialGradient(w*.5,h*.3,0,w*.5,h*.3,Math.max(w,h));
+      grd.addColorStop(0,'rgba(124,158,255,0.06)');
+      grd.addColorStop(1,'rgba(10,11,16,0)');
+      ctx.fillStyle = grd; ctx.fillRect(0,0,w,h);
+
+      // particles
+      ctx.globalCompositeOperation = 'lighter';
+      for(const p of particles){
+        p.x += p.vx; p.y += p.vy; p.a += 0.002;
+        if(p.x < -20) p.x = w+20; if(p.x > w+20) p.x = -20;
+        if(p.y < -20) p.y = h+20; if(p.y > h+20) p.y = -20;
+        const glow = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*6);
+        glow.addColorStop(0, 'rgba(156, 180, 255, .35)');
+        glow.addColorStop(1, 'rgba(156, 180, 255, 0)');
+        ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(p.x,p.y,p.r*6,0,Math.PI*2); ctx.fill();
+
+        ctx.fillStyle = 'rgba(124,158,255,.9)';
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+      }
+      ctx.globalCompositeOperation = 'source-over';
+      requestAnimationFrame(step);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    step();
+
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(a=>{
+      a.addEventListener('click', e=>{
+        const id = a.getAttribute('href').slice(1);
+        const el = document.getElementById(id);
+        if(el){ e.preventDefault(); el.scrollIntoView({behavior:'smooth'}); }
+      })
+    })
+  </script>
 </body>
 </html>
