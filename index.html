@@ -10,15 +10,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#0a0b10;
-      --panel:#0e111a;
+      --bg:#08123f;
+      --panel:#081b55;
       --text:#e1e8ff;
       --muted:#98a2b3;
       --accent:#78b9ff;
       --accent-2:#0000ff;
       --accent-3:#3dd5ff;
       --glass:rgba(255,255,255,0.06);
-      --border:rgba(255,255,255,0.12);
+      --border:rgba(2, 0, 27, 0.498);
       --shadow:0 10px 30px rgba(0,0,0,.35);
       --radius:18px;
       --max:1100px;
@@ -64,8 +64,8 @@
     /* Hero */
     .hero{display:grid; grid-template-columns:1.1fr .9fr; gap:26px; align-items:center; margin-top:24px}
     @media (max-width:900px){.hero{grid-template-columns:1fr}}
-    .card{background:var(--glass); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow)}
-    .hero .card{padding:28px}
+    .card{background:var(--glass); border:3px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow)}
+    .hero .card{padding:30px}
     .kicker{font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); font-size:12px}
     .title{font-size:clamp(28px, 5vw, 48px); line-height:1.07; margin:.35em 0 .2em}
     .subtitle{color:#c3ccff; opacity:.9}
@@ -81,11 +81,16 @@
     .about h3{margin:0 0 10px}
     .list{margin:0; padding:0; list-style:none; display:grid; gap:8px}
     .list li{display:flex; align-items:center; gap:10px; padding:10px; border:1px dashed var(--border); border-radius:12px; background:rgba(255,255,255,.03)}
+    
+    /* Stats widget */
+    .stats { margin-top: 12px; display: grid; gap: 10px }
+    .stat { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.04) }
+    .stat span { font-variant-numeric: tabular-nums; letter-spacing: .5px }
 
     /* Sections */
     section{margin-top:40px}
     .section-title{font-size:22px; margin:0 0 12px; color:#aebaff}
-    .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+    .grid{display:flex; grid-template-columns:repeat(3,1fr); gap:50px}
     @media (max-width:900px){.grid{grid-template-columns:1fr}}
     .panel{padding:20px}
 
@@ -147,28 +152,38 @@
     <!-- Links -->
     <section id="links">
       <h3 class="section-title">Links</h3>
-      <div class="grid">
-        <div class="linkcard1">
+      <div class="grid card">
+        <div class="panel linkcard">
           <div>
             <strong>YouTube</strong>
             <div class="muted">Minecraft Shorts, Experiments, and Mods!</div>
           </div>
           <a class="btn" href="https://youtube.com/@BrianskiMC" target="_blank" rel="noopener">Subscribe</a>
         </div>
-        <div class="linkcard2">
+        <div class="panel linkcard">
           <div>
             <strong>Twitch</strong>
             <div class="muted">Minecraft Contents & Random Gaming!</div>
           </div>
           <a class="btn" href="https://twitch.tv/brianski_" target="_blank" rel="noopener">Follow</a>
         </div>
-        <div class="linkcard3">
+        <div class="panel linkcard">
           <div>
             <strong>Discord</strong>
             <div class="muted">Brianski's Minecraft Community</div>
           </div>
           <a class="btn" href="https://discord.gg/egDtRh4Xxt" target="_blank" rel="noopener">Join</a>
         </div>
+      </div>
+    </section>
+
+    <!-- Stats section -->
+    <section id="stats" class="panel" style="max-width:700px; margin:25px auto 0; padding:10px">
+      <h3 class="section-title">Live Stats</h3>
+      <div class="stats card">
+        <div class="stat"><strong>YouTube Subscribers</strong><span id="ytCount">—</span></div>
+        <div class="stat"><strong>Twitch Followers</strong><span id="twCount">—</span></div>
+        <div class="muted" id="updatedNote" style="text-align:center">Live · waiting…</div>
       </div>
     </section>
 
@@ -257,6 +272,56 @@
         if(el){ e.preventDefault(); el.scrollIntoView({behavior:'smooth'}); }
       })
     })
+
+    // Sub-meter loader: tries /data/counts.json first, then /api/* as fallback
+     function setBar(id, value, goal){
+     const el = document.getElementById(id);
+     const pct = Math.max(0, Math.min(100, goal ? (value/goal*100) : 0));
+     el.style.width = pct + '%';
+     el.title = goal ? `${value}/${goal}` : String(value);
+   }
+
+   async function loadStats(){
+     const ytCount = document.getElementById('ytCount');
+     const twCount = document.getElementById('twCount');
+     const note = document.getElementById('updatedNote');
+     const stamp = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+     let ok = false;
+     
+     try {
+       const res = await fetch('/data/counts.json', { cache: 'no-store' });
+       if(!res.ok) throw 0;
+       const data = await res.json();
+       const yt = Number(data?.youtube?.subscribers ?? 0);
+       const tw = Number(data?.twitch?.followers ?? 0);
+       ytCount.textContent = yt.toLocaleString();
+       twCount.textContent = tw.toLocaleString();
+       ok = true;
+     } catch {}
+     
+     if (!ok) {
+       try {
+         const [ytr, twr] = await Promise.all([
+           fetch('/api/yt', { cache: 'no-store' }),
+           fetch('/api/twitch', { cache: 'no-store' })
+         ]);
+         const ytd = await ytr.json();
+         const twd = await twr.json();
+         const yt = Number(ytd?.subscribers ?? ytd?.count ?? 0);
+         const tw = Number(twd?.followers ?? twd?.count ?? 0);
+         ytCount.textContent = yt.toLocaleString();
+         twCount.textContent = tw.toLocaleString();
+         ok = true;
+       } catch {} 
+     }
+
+     note.textContent = ok ? 'Live · updated ' + stamp() : 'Live · failed to load';
+   }
+
+   document.addEventListener('DOMContentLoaded', () => {
+     loadCounts();
+     setInterval(loadCounts, 120000); // refresh every 2 minutes
+   });
   </script>
 </body>
 </html>
