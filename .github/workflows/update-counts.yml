@@ -1,0 +1,103 @@
+name: Update social counts
+
+on:
+  # Runs automatically every 30 minutes
+  schedule:
+    - cron: "*/30 * * * *"
+  # Lets you trigger manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed to commit updated counts.json
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install fetch
+        run: npm i node-fetch@3
+
+      - name: Update follower/subscriber counts
+        env:
+          YT_API_KEY: ${{ secrets.YT_API_KEY }}
+          YT_CHANNEL_ID: ${{ secrets.YT_CHANNEL_ID }}
+          TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
+          TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
+          TWITCH_BROADCASTER_ID: ${{ secrets.TWITCH_BROADCASTER_ID }}
+        run: |
+          node - <<'NODE'
+          import fs from 'fs';
+          import fetch from 'node-fetch';
+
+          async function ytSubs(key, id) {
+            const u = new URL('https://www.googleapis.com/youtube/v3/channels');
+            u.searchParams.set('part', 'statistics');
+            u.searchParams.set('id', id);
+            u.searchParams.set('key', key);
+            const r = await fetch(u);
+            const j = await r.json();
+            return Number(j?.items?.[0]?.statistics?.subscriberCount || 0);
+          }
+
+          async function twitchFollowers(cid, sec, bid) {
+            // get OAuth token
+            const tr = await fetch('https://id.twitch.tv/oauth2/token', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: new URLSearchParams({
+                client_id: cid,
+                client_secret: sec,
+                grant_type: 'client_credentials'
+              })
+            });
+            const tok = await tr.json();
+
+            // get follower count
+            const r = await fetch(
+              `https://api.twitch.tv/helix/channels/followers?broadcaster_id=${bid}`,
+              {
+                headers: {
+                  'Client-Id': cid,
+                  'Authorization': `Bearer ${tok.access_token}`
+                }
+              }
+            );
+            const j = await r.json();
+            return Number(j?.total ?? 0);
+          }
+
+          (async () => {
+            const yt = await ytSubs(process.env.YT_API_KEY, process.env.YT_CHANNEL_ID);
+            const tw = await twitchFollowers(
+              process.env.TWITCH_CLIENT_ID,
+              process.env.TWITCH_CLIENT_SECRET,
+              process.env.TWITCH_BROADCASTER_ID
+            );
+
+            const data = {
+              youtube: { subscribers: yt },
+              twitch: { followers: tw },
+              updated: new Date().toISOString()
+            };
+
+            fs.mkdirSync('data', { recursive: true });
+            fs.writeFileSync('data/counts.json', JSON.stringify(data, null, 2));
+            console.log('✅ Updated counts.json:', data);
+          })();
+          NODE
+
+      - name: Commit and push counts.json
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add data/counts.json
+          git commit -m "chore: update counts.json [skip ci]" || echo "No changes to commit"
+          git push
