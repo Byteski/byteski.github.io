@@ -4,9 +4,9 @@ name: Update social counts
 on:
   # Runs automatically every 30 minutes
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "0 3 * * 0"
   # Lets you trigger manually from the Actions tab
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 permissions:
   contents: write   # needed to commit updated counts.json
