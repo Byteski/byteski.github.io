@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Channel Stats — Lifetime</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/favicon.png">
+  <style>
+    body{font-family:system-ui,Segoe UI,Inter,Arial,sans-serif;background:#0d1117;color:#e6edf3;margin:0}
+    .wrap{max-width:1000px;margin:0 auto;padding:28px 16px}
+    h1{font-size:26px;margin:0 0 6px}
+    .muted{color:#9da7b3}
+    .grid{display:grid;gap:16px;margin-top:18px}
+    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+    .card{background:#0f141b;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px}
+    canvas{width:100%;height:360px}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px}
+    .k{font-variant-numeric:tabular-nums}
+    a{color:#7cb1ff;text-decoration:none}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Lifetime Channel Stats</h1>
+    <div class="muted">YouTube subscribers & Twitch followers over time (auto-logged by GitHub Actions).</div>
+
+    <div class="grid" style="margin-top:16px">
+      <div class="card"><h3>YouTube Subscribers</h3><canvas id="ytChart"></canvas></div>
+      <div class="card"><h3>Twitch Followers</h3><canvas id="twChart"></canvas></div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3>Summary</h3>
+      <div class="stats">
+        <div class="stat"><div class="muted">YouTube Latest</div><div id="ytLatest" class="k">—</div></div>
+        <div class="stat"><div class="muted">YouTube Growth (30d)</div><div id="ytGrowth" class="k">—</div></div>
+        <div class="stat"><div class="muted">YouTube All-time Δ</div><div id="ytAll" class="k">—</div></div>
+
+        <div class="stat"><div class="muted">Twitch Latest</div><div id="twLatest" class="k">—</div></div>
+        <div class="stat"><div class="muted">Twitch Growth (30d)</div><div id="twGrowth" class="k">—</div></div>
+        <div class="stat"><div class="muted">Twitch All-time Δ</div><div id="twAll" class="k">—</div></div>
+      </div>
+      <div class="muted" id="note" style="margin-top:10px">Loading…</div>
+    </div>
+
+    <div style="margin-top:18px" class="muted">
+      <a href="/">← Back to home</a>
+    </div>
+  </div>
+
+  <script>
+    async function loadHistory(){
+      const res = await fetch('../data/history.json?t=' + Date.now());
+      if(!res.ok) throw new Error('History not found');
+      return res.json();
+    }
+
+    function fmt(n){ return Number(n||0).toLocaleString(); }
+
+    function computeGrowth(points, key){
+      if(points.length < 2) return {latest:0, delta30:0, all:0};
+      const latest = points[points.length-1][key]||0;
+      const first  = points[0][key]||0;
+
+      // 30-day growth (approx: find first point older than 30 days)
+      const cutoff = Date.now() - 30*24*60*60*1000;
+      let older = points[0][key]||0;
+      for(let i=points.length-1;i>=0;i--){
+        const ts = new Date(points[i].t).getTime();
+        if(ts <= cutoff){ older = points[i][key]||0; break; }
+      }
+      return { latest, delta30: latest-older, all: latest-first };
+    }
+
+    function toChartData(points, key){
+      return {
+        labels: points.map(p=> new Date(p.t)),
+        data: points.map(p=> p[key] || 0)
+      };
+    }
+
+    function makeChart(ctx, labels, data, label){
+      return new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label,
+            data,
+            tension: 0.2,
+            borderWidth: 2,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: { type: 'time', time: { unit: 'day' }, ticks: { maxTicksLimit: 8 } },
+            y: { beginAtZero: true }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    (async ()=>{
+      try{
+        const hist = await loadHistory();
+        const pts = Array.isArray(hist.points) ? hist.points : [];
+        if(pts.length === 0) throw new Error('No points yet');
+
+        // Summary numbers
+        const gYT = computeGrowth(pts, 'yt');
+        const gTW = computeGrowth(pts, 'tw');
+        document.getElementById('ytLatest').textContent = fmt(gYT.latest);
+        document.getElementById('ytGrowth').textContent = (gYT.delta30>=0?'+':'') + fmt(gYT.delta30);
+        document.getElementById('ytAll').textContent    = (gYT.all>=0?'+':'') + fmt(gYT.all);
+        document.getElementById('twLatest').textContent = fmt(gTW.latest);
+        document.getElementById('twGrowth').textContent = (gTW.delta30>=0?'+':'') + fmt(gTW.delta30);
+        document.getElementById('twAll').textContent    = (gTW.all>=0?'+':'') + fmt(gTW.all);
+
+        // Charts
+        const yt = toChartData(pts, 'yt');
+        const tw = toChartData(pts, 'tw');
+        makeChart(document.getElementById('ytChart'), yt.labels, yt.data, 'YouTube Subs');
+        makeChart(document.getElementById('twChart'), tw.labels, tw.data, 'Twitch Followers');
+
+        document.getElementById('note').textContent = 'Updated ' + new Date(pts[pts.length-1].t).toLocaleString();
+      }catch(e){
+        document.getElementById('note').textContent = 'No history yet — wait for the workflow to run a few times.';
+        console.error(e);
+      }
+    })();
+  </script>
+</body>
+</html>
