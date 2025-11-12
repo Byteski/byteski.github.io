@@ -26,7 +26,7 @@ jobs:
       - name: Install fetch
         run: npm i node-fetch@3
 
-      - name: Update follower/subscriber counts
+      - name: Fetch counts and write JSON
         env:
           YT_API_KEY: ${{ secrets.YT_API_KEY }}
           YT_CHANNEL_ID: ${{ secrets.YT_CHANNEL_ID }}
@@ -38,60 +38,59 @@ jobs:
           import fs from 'fs';
           import fetch from 'node-fetch';
 
-          async function ytSubs(key, id) {
+          async function yt(key,id){
             const u = new URL('https://www.googleapis.com/youtube/v3/channels');
-            u.searchParams.set('part', 'statistics');
+            u.searchParams.set('part','statistics');
             u.searchParams.set('id', id);
             u.searchParams.set('key', key);
-            const r = await fetch(u);
-            const j = await r.json();
+            const r = await fetch(u); const j = await r.json();
             return Number(j?.items?.[0]?.statistics?.subscriberCount || 0);
           }
-
-          async function twitchFollowers(cid, sec, bid) {
-            // get OAuth token
+          async function twitch(cid,sec,bid){
             const tr = await fetch('https://id.twitch.tv/oauth2/token', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: new URLSearchParams({
-                client_id: cid,
-                client_secret: sec,
-                grant_type: 'client_credentials'
-              })
+              method:'POST',
+              headers:{'Content-Type':'application/x-www-form-urlencoded'},
+              body:new URLSearchParams({client_id:cid, client_secret:sec, grant_type:'client_credentials'})
             });
             const tok = await tr.json();
-
-            // get follower count
-            const r = await fetch(
-              `https://api.twitch.tv/helix/channels/followers?broadcaster_id=${bid}`,
-              {
-                headers: {
-                  'Client-Id': cid,
-                  'Authorization': `Bearer ${tok.access_token}`
-                }
-              }
-            );
+            const r = await fetch(`https://api.twitch.tv/helix/channels/followers?broadcaster_id=${bid}`, {
+              headers:{'Client-Id':cid,'Authorization':'Bearer '+tok.access_token}
+            });
             const j = await r.json();
             return Number(j?.total ?? 0);
           }
 
-          (async () => {
-            const yt = await ytSubs(process.env.YT_API_KEY, process.env.YT_CHANNEL_ID);
-            const tw = await twitchFollowers(
-              process.env.TWITCH_CLIENT_ID,
-              process.env.TWITCH_CLIENT_SECRET,
-              process.env.TWITCH_BROADCASTER_ID
-            );
+          const now = new Date().toISOString();
 
-            const data = {
-              youtube: { subscribers: yt },
-              twitch: { followers: tw },
-              updated: new Date().toISOString()
+          (async ()=>{
+            const ytCount = await yt(process.env.YT_API_KEY, process.env.YT_CHANNEL_ID);
+            const twCount = await twitch(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET, process.env.TWITCH_BROADCASTER_ID);
+
+            // 1) Current snapshot
+            const snapshot = {
+              youtube: { subscribers: ytCount },
+              twitch:  { followers:   twCount },
+              updated: now
             };
+            fs.mkdirSync('data', { recursive:true });
+            fs.writeFileSync('data/counts.json', JSON.stringify(snapshot, null, 2));
 
-            fs.mkdirSync('data', { recursive: true });
-            fs.writeFileSync('data/counts.json', JSON.stringify(data, null, 2));
-            console.log('✅ Updated counts.json:', data);
+            // 2) Lifetime history (append)
+            const histPath = 'data/history.json';
+            let hist = { points: [] };
+            if (fs.existsSync(histPath)) {
+              try { hist = JSON.parse(fs.readFileSync(histPath,'utf8')); } catch {}
+              if (!Array.isArray(hist.points)) hist.points = [];
+            }
+            hist.points.push({ t: now, yt: ytCount, tw: twCount });
+
+            // keep the last ~10,000 points (safety prune)
+            if (hist.points.length > 10000) {
+              hist.points = hist.points.slice(-10000);
+            }
+
+            fs.writeFileSync(histPath, JSON.stringify(hist, null, 2));
+            console.log('✅ Updated counts.json and history.json');
           })();
           NODE
 
