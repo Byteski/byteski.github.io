@@ -24,7 +24,10 @@
 <body>
   <div class="wrap">
     <h1>Lifetime Channel Stats</h1>
-    <div class="muted">YouTube subscribers & Twitch followers over time (auto-logged by GitHub Actions).</div>
+    <div class="muted">Brianski's YouTube Subscribers & Twitch Followers!</div>
+    <div style="margin-top:10px" class="muted">
+      <a href="/">Go Back</a>
+    </div>
 
     <div class="grid" style="margin-top:16px">
       <div class="card"><h3>YouTube Subscribers</h3><canvas id="ytChart"></canvas></div>
@@ -44,11 +47,6 @@
       </div>
       <div class="muted" id="note" style="margin-top:10px">Loading…</div>
     </div>
-
-    <div style="margin-top:18px" class="muted">
-      <a href="/">← Back to home</a>
-    </div>
-  </div>
 
   <script>
     async function loadHistory(){
