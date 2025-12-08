@@ -454,7 +454,7 @@ let tLastHorizontalMoveTime = 0;
 let tLastSoftDropTime = 0;
 
 // Lower = faster side movement
-const HORIZONTAL_REPEAT_DELAY = 50; // ms between moves when key held
+const HORIZONTAL_REPEAT_DELAY = 100; // ms between moves when key held
 const SOFT_DROP_REPEAT_DELAY = 100;  // ms between auto drops when key held
 
 document.addEventListener("keydown", (event) => {
