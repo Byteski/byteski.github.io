@@ -7,22 +7,37 @@
 </head>
 <body>
   <div id="tetris-wrap">
-    <canvas id="tetris-canvas" width="240" height="480"></canvas>
+    <canvas id="tetris-canvas" width="360" height="720"></canvas>
 
     <div id="tetris-info">
       <div class="score">
         Score: <span id="tetris-score">0</span>
       </div>
+      <div class="score small">
+        High Score: <span id="tetris-highscore">0</span>
+      </div>
 
-      <div>Controls:</div>
+      <div id="preview-wrap">
+        <div class="preview-block">
+          <div class="preview-title">Hold</div>
+          <canvas id="hold-canvas" width="96" height="96"></canvas>
+        </div>
+        <div class="preview-block">
+          <div class="preview-title">Next</div>
+          <canvas id="next-canvas" width="96" height="96"></canvas>
+        </div>
+      </div>
+
+      <div>[Controls]</div>
       <ul>
-        <li>◀ / ▶ – Move</li>
-        <li>⬇ – Soft drop</li>
-        <li>Q / W – Rotate</li>
-        <li>Space – Hard drop</li>
+        <li> Movement | ◀ / ▶ (L&R Arrow)</li>
+        <li>Soft Drop | ⬇ (Down Arrow)</li>
+        <li>Hard Drop | Space</li>
+        <li> Rotation | Q / W</li>
+        <li>Hold Piece| Shift / C</li>
       </ul>
 
-      <div class="hint">Refresh the page to restart.</div>
+      <div class="hint">Refresh the page to restart :D</div>
       <div id="tetris-status" class="game-over"></div>
     </div>
   </div>
