@@ -293,7 +293,7 @@ function tPlayerDrop() {
     tMerge(tArena, tPlayer);
     tArenaSweep();
 
-    tKeys.down = false;
+    tIgnoreHeldSoftDrop = true;
     tLastSoftDropTime = performance.now();
 
     tResetPlayer();
@@ -344,6 +344,9 @@ function tPlayerHardDrop() {
   tPlayer.pos.y--;
   tMerge(tArena, tPlayer);
   tArenaSweep();
+
+  tIgnoreHeldSoftDrop = true;
+  tLastSoftDropTime = performance.now();
 
   tIgnoreHeldHardDrop = true;
 
@@ -459,6 +462,7 @@ const tKeys = {
 let tLastHorizontalMoveTime = 0;
 let tLastSoftDropTime = 0;
 let tIgnoreHeldHardDrop = false;
+let tIgnoreHeldSoftDrop = false;
 let dasTimer = 0;
 let arrTimer = 0;
 
@@ -487,6 +491,7 @@ document.addEventListener("keydown", (event) => {
 
     // Soft Drop = X
     case "KeyX":
+      if(tIgnoreHeldSoftDrop) break;
       if (!tKeys.down) tPlayerDrop();
       tKeys.down = true;
       break;
@@ -531,6 +536,7 @@ document.addEventListener("keyup", (event) => {
       break;
     case "KeyX":
       tKeys.down = false;
+      tIgnoreHeldSoftDrop = false;
       break;
 
     case "ArrowUp":
@@ -596,7 +602,7 @@ function tUpdate() {
   }
 
   // --- CLEAN Soft Drop ---
-  if (tKeys.down) {
+  if (tKeys.down && !tIgnoreHeldSoftDrop) {
     if (performance.now() - tLastSoftDropTime > SOFT_DROP_REPEAT_DELAY) {
       tPlayerDrop();
       tLastSoftDropTime = performance.now();
