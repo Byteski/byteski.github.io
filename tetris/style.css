@@ -27,8 +27,9 @@ h1 {
 
 /* Game container */
 #tetris-wrap {
-  display: flex;
+  display: grid;
   gap: 24px;
+  grid-template-columns: 1fr auto 1fr;
   align-items: flex-start;
   padding: 16px 20px;
   border-radius: 12px;
@@ -44,6 +45,7 @@ h1 {
   border: 2px solid #555;
   background: #000;
   image-rendering: pixelated;
+  grid-column: 2;
 }
 
 /* Info panel */
@@ -51,6 +53,7 @@ h1 {
   font-size: 14px;
   line-height: 1.5;
   max-width: 300px;
+  grid-column: 3;
 }
 
 .score {
