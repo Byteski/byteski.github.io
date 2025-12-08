@@ -155,8 +155,6 @@ function tSpawnCurrentPiece() {
   tPlayer.pos.x =
     ((tArena[0].length / 2) | 0) - ((tPlayer.matrix[0].length / 2) | 0);
 
-  tHasHeldThisTurn = false; // allow hold once for this piece
-
   if (tCollide(tArena, tPlayer)) {
     tStatusEl.textContent = "Game Over";
     tRunning = false;
@@ -169,6 +167,7 @@ function tInitPieces() {
   tCurrentShapeIndex = tNextFromBag();
   tNextShapeIndex = tNextFromBag();
   tHoldShapeIndex = null;
+  tHasHeldThisTurn = false;
   tSpawnCurrentPiece();
   tUpdatePreviews();
 }
@@ -176,6 +175,7 @@ function tInitPieces() {
 function tResetPlayer() {
   tCurrentShapeIndex = tNextShapeIndex;
   tNextShapeIndex = tNextFromBag();
+  tHasHeldThisTurn = false;
   tSpawnCurrentPiece();
   tUpdatePreviews();
 }
@@ -183,7 +183,6 @@ function tResetPlayer() {
 function tHoldPiece() {
   if (!tRunning) return;
   if (tHasHeldThisTurn) return; // LIMIT: once per spawned piece
-
   tHasHeldThisTurn = true; // important! prevents unlimited hold
 
   if (tHoldShapeIndex === null) {
@@ -454,9 +453,9 @@ let tLastHorizontalMoveTime = 0;
 let tLastSoftDropTime = 0;
 
 // Lower = faster side movement
-const DAS_DELAY = 133;   // ms before sideways auto-repeat starts
-const ARR_DELAY = 33;    // ms between sideways moves after DAS
-const SOFT_DROP_REPEAT_DELAY = 30; // ms between soft drops
+const DAS_DELAY = 160;   // ms before sideways auto-repeat starts
+const ARR_DELAY = 60;    // ms between sideways moves after DAS
+const SOFT_DROP_REPEAT_DELAY = 52; // ms between soft drops
 
 document.addEventListener("keydown", (event) => {
   if (!tRunning) return;
