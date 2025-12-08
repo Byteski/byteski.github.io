@@ -1,50 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Simple Multiplayer Tetris</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8"/>
+  <title>Simple Tetris</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <h1>Simple Multiplayer Tetris</h1>
+  <div id="tetris-wrap">
+    <canvas id="tetris-canvas" width="240" height="480"></canvas>
 
-  <div id="top-bar">
-    <div id="name-box">
-      <span>Your name:</span>
-      <span id="player-name-display"></span>
-    </div>
-    <div id="room-info">
-      Room: <strong>Global Lobby</strong>
-    </div>
-  </div>
-
-  <div id="layout">
-    <div id="game-column">
-      <canvas id="tetris-canvas" width="240" height="480"></canvas>
-      <div id="game-info">
-        <div class="score">
-          Score: <span id="tetris-score">0</span>
-        </div>
-        <div>Controls:</div>
-        <ul>
-          <li>◀ / ▶ – Move</li>
-          <li>⬇ – Soft drop</li>
-          <li>Q / W – Rotate</li>
-          <li>Space – Hard drop</li>
-        </ul>
-        <div class="hint">Refresh the page to restart.</div>
-        <div id="tetris-status" class="game-over"></div>
+    <div id="tetris-info">
+      <div class="score">
+        Score: <span id="tetris-score">0</span>
       </div>
-    </div>
 
-    <div id="sidebar">
-      <h2>Players</h2>
-      <ul id="players-list"></ul>
+      <div>Controls:</div>
+      <ul>
+        <li>◀ / ▶ – Move</li>
+        <li>⬇ – Soft drop</li>
+        <li>Q / W – Rotate</li>
+        <li>Space – Hard drop</li>
+      </ul>
+
+      <div class="hint">Refresh the page to restart.</div>
+      <div id="tetris-status" class="game-over"></div>
     </div>
   </div>
 
-  <!-- socket.io client from server -->
-  <script src="/socket.io/socket.io.js"></script>
   <script src="tetris.js" defer></script>
 </body>
 </html>

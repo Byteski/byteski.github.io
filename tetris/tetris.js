@@ -1,177 +1,76 @@
-// =====================
-//  MULTIPLAYER SETUP
-// =====================
-
-// Get stored name or ask once
-let desiredName = window.localStorage.getItem("tetrisName") || "";
-if (!desiredName) {
-  desiredName = prompt("Enter a name (leave blank for Guest):") || "";
-  desiredName = desiredName.trim();
-  if (desiredName) {
-    window.localStorage.setItem("tetrisName", desiredName);
-  }
-}
-
-// Connect to server with auth.username (can be empty => Guest)
-const socket = io({
-  auth: {
-    username: desiredName
-  }
-});
-
-let myId = null;
-let myName = null;
-const opponents = new Map(); // id -> { id, name, score, alive }
-
-const nameDisplayEl = document.getElementById("player-name-display");
-const playersListEl = document.getElementById("players-list");
-
-socket.on("welcome", (data) => {
-  myId = data.id;
-  myName = data.name;
-
-  if (nameDisplayEl) {
-    nameDisplayEl.textContent = myName;
-  }
-
-  opponents.clear();
-  data.players.forEach((p) => {
-    if (p.id !== myId) opponents.set(p.id, p);
-  });
-  renderPlayersList();
-});
-
-socket.on("playersUpdate", (players) => {
-  opponents.clear();
-  players.forEach((p) => {
-    if (p.id !== myId) opponents.set(p.id, p);
-  });
-  renderPlayersList();
-});
-
-function renderPlayersList() {
-  if (!playersListEl) return;
-  playersListEl.innerHTML = "";
-
-  // Add self as top entry
-  if (myId && myName != null) {
-    const li = document.createElement("li");
-    li.classList.add("you");
-    const nameSpan = document.createElement("span");
-    nameSpan.className = "player-name";
-    nameSpan.textContent = myName + " (you)";
-
-    const right = document.createElement("span");
-    right.classList.add("player-score");
-    right.textContent = `${tPlayer.score} pts`;
-
-    li.appendChild(nameSpan);
-    li.appendChild(right);
-    playersListEl.appendChild(li);
-  }
-
-  // Add others
-  opponents.forEach((p) => {
-    const li = document.createElement("li");
-
-    const nameSpan = document.createElement("span");
-    nameSpan.className = "player-name";
-    nameSpan.textContent = p.name;
-
-    const right = document.createElement("span");
-    right.className = "player-score";
-    right.textContent = `${p.score} pts`;
-
-    if (!p.alive) {
-      const statusSpan = document.createElement("span");
-      statusSpan.className = "player-status";
-      statusSpan.textContent = "KO";
-      right.appendChild(statusSpan);
-    }
-
-    li.appendChild(nameSpan);
-    li.appendChild(right);
-    playersListEl.appendChild(li);
-  });
-}
-
-// Send our game state (score + alive) to server
-function sendStateToServer() {
-  if (!socket || !myId) return;
-  socket.emit("stateUpdate", {
-    score: tPlayer.score,
-    alive: tRunning
-    // You could also send the board if you want
-    // board: tArena
-  });
-}
-
-// =====================
-//  TETRIS GAME LOGIC
-// =====================
-
+// --- Basic config ---
 const T_COLS = 10;
 const T_ROWS = 20;
-const T_BLOCK_SIZE = 24;
-const T_DROP_INTERVAL_START = 800;
+const T_BLOCK_SIZE = 24; // pixels
+const T_DROP_INTERVAL_START = 800; // ms
 
+// Canvas and DOM
 const tCanvas = document.getElementById("tetris-canvas");
 const tCtx = tCanvas.getContext("2d");
 const tScoreEl = document.getElementById("tetris-score");
 const tStatusEl = document.getElementById("tetris-status");
 
+// Scale for block units
 tCtx.scale(T_BLOCK_SIZE, T_BLOCK_SIZE);
 
-// Shapes
+// Tetromino shapes
 const T_SHAPES = [
+  // I
   [
     [0, 0, 0, 0],
     [1, 1, 1, 1],
     [0, 0, 0, 0],
-    [0, 0, 0, 0]
+    [0, 0, 0, 0],
   ],
+  // J
   [
     [2, 0, 0],
     [2, 2, 2],
-    [0, 0, 0]
+    [0, 0, 0],
   ],
+  // L
   [
     [0, 0, 3],
     [3, 3, 3],
-    [0, 0, 0]
+    [0, 0, 0],
   ],
+  // O
   [
     [4, 4],
-    [4, 4]
+    [4, 4],
   ],
+  // S
   [
     [0, 5, 5],
     [5, 5, 0],
-    [0, 0, 0]
+    [0, 0, 0],
   ],
+  // T
   [
     [0, 6, 0],
     [6, 6, 6],
-    [0, 0, 0]
+    [0, 0, 0],
   ],
+  // Z
   [
     [7, 7, 0],
     [0, 7, 7],
-    [0, 0, 0]
-  ]
+    [0, 0, 0],
+  ],
 ];
 
 const T_COLORS = [
-  "#000000",
-  "#00f0f0",
-  "#0000f0",
-  "#f0a000",
-  "#f0f000",
-  "#00f000",
-  "#a000f0",
-  "#f00000"
+  "#000000", // 0 empty
+  "#00f0f0", // 1
+  "#0000f0", // 2
+  "#f0a000", // 3
+  "#f0f000", // 4
+  "#00f000", // 5
+  "#a000f0", // 6
+  "#f00000", // 7
 ];
 
+// --- Board / arena ---
 function tCreateMatrix(w, h) {
   const matrix = [];
   while (h--) {
@@ -182,18 +81,19 @@ function tCreateMatrix(w, h) {
 
 const tArena = tCreateMatrix(T_COLS, T_ROWS);
 
+// --- Player state ---
 const tPlayer = {
   pos: { x: 0, y: 0 },
   matrix: null,
-  score: 0
+  score: 0,
 };
 
 let tDropCounter = 0;
 let tLastTime = 0;
 let tDropInterval = T_DROP_INTERVAL_START;
 let tRunning = true;
-let lastNetworkSend = 0;
 
+// --- Core functions ---
 function tResetPlayer() {
   const shapeIndex = (Math.random() * T_SHAPES.length) | 0;
   tPlayer.matrix = T_SHAPES[shapeIndex].map((row) => row.slice());
@@ -204,7 +104,6 @@ function tResetPlayer() {
   if (tCollide(tArena, tPlayer)) {
     tStatusEl.textContent = "Game Over";
     tRunning = false;
-    sendStateToServer();
   }
 }
 
@@ -238,9 +137,7 @@ function tArenaSweep() {
   let rowCount = 0;
   outer: for (let y = tArena.length - 1; y >= 0; y--) {
     for (let x = 0; x < tArena[y].length; x++) {
-      if (tArena[y][x] === 0) {
-        continue outer;
-      }
+      if (tArena[y][x] === 0) continue outer;
     }
 
     const row = tArena.splice(y, 1)[0].fill(0);
@@ -253,7 +150,6 @@ function tArenaSweep() {
     const base = [0, 40, 100, 300, 1200][rowCount] || 40 * rowCount;
     tPlayer.score += base;
     tScoreEl.textContent = tPlayer.score;
-    sendStateToServer();
   }
 }
 
@@ -315,6 +211,7 @@ function tPlayerHardDrop() {
   tDropCounter = 0;
 }
 
+// --- Drawing ---
 function tDrawBlock(x, y, value) {
   tCtx.fillStyle = T_COLORS[value];
   tCtx.fillRect(x, y, 1, 1);
@@ -336,12 +233,14 @@ function tDrawMatrix(matrix, offset) {
 function tDraw() {
   tCtx.fillStyle = "#000";
   tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
+
   tDrawMatrix(tArena, { x: 0, y: 0 });
   if (tRunning) {
     tDrawMatrix(tPlayer.matrix, tPlayer.pos);
   }
 }
 
+// --- Game loop ---
 function tUpdate(time = 0) {
   const deltaTime = time - tLastTime;
   tLastTime = time;
@@ -356,15 +255,11 @@ function tUpdate(time = 0) {
     tPlayerDrop();
   }
 
-  if (time - lastNetworkSend > 250) {
-    sendStateToServer();
-    lastNetworkSend = time;
-  }
-
   tDraw();
   requestAnimationFrame(tUpdate);
 }
 
+// --- Input ---
 document.addEventListener("keydown", (event) => {
   if (!tRunning) return;
 
@@ -391,6 +286,6 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-// Init
+// --- Init ---
 tResetPlayer();
 tUpdate();
