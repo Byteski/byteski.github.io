@@ -292,6 +292,10 @@ function tPlayerDrop() {
     tPlayer.pos.y--;
     tMerge(tArena, tPlayer);
     tArenaSweep();
+
+    tKeys.down = false;
+    tLastSoftDropTime = performance.now();
+
     tResetPlayer();
   }
   tDropCounter = 0;
@@ -340,6 +344,9 @@ function tPlayerHardDrop() {
   tPlayer.pos.y--;
   tMerge(tArena, tPlayer);
   tArenaSweep();
+
+  tIgnoreHeldHardDrop = true;
+
   tResetPlayer();
   tDropCounter = 0;
 }
@@ -451,6 +458,9 @@ const tKeys = {
 
 let tLastHorizontalMoveTime = 0;
 let tLastSoftDropTime = 0;
+let tIgnoreHeldHardDrop = false;
+let dasTimer = 0;
+let arrTimer = 0;
 
 // Lower = faster side movement
 const DAS_DELAY = 160;   // ms before sideways auto-repeat starts
@@ -496,6 +506,7 @@ document.addEventListener("keydown", (event) => {
     // Hard Drop
     case "Space":
       event.preventDefault();
+      if (tIgnoreHeldHardDrop) break;
       if (!tKeys.hardDropHeld) tPlayerHardDrop();
       tKeys.hardDropHeld = true;
       break;
@@ -531,6 +542,7 @@ document.addEventListener("keyup", (event) => {
 
     case "Space":
       tKeys.hardDropHeld = false;
+      tIgnoreHeldHardDrop = false;
       break;
 
     case "ShiftLeft":
