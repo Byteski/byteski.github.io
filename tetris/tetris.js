@@ -463,48 +463,41 @@ document.addEventListener("keydown", (event) => {
 
   switch (event.code) {
     case "ArrowLeft":
-      if (!tKeys.left) {
-        tPlayerMove(-1); // instant
-      }
+      if (!tKeys.left) tPlayerMove(-1); // instant tap
       tKeys.left = true;
+      dasTimer = performance.now();  // reset DAS on new press
+      arrTimer = performance.now();
       break;
 
     case "ArrowRight":
-      if (!tKeys.right) {
-        tPlayerMove(1); // instant
-      }
+      if (!tKeys.right) tPlayerMove(1);
       tKeys.right = true;
+      dasTimer = performance.now();
+      arrTimer = performance.now();
       break;
 
+    // Soft Drop = X
     case "KeyX":
-      if (!tKeys.down) {
-        tPlayerDrop(); // instant
-      }
+      if (!tKeys.down) tPlayerDrop();
       tKeys.down = true;
       break;
 
-    // Rotate CW
+    // Rotate CW = Up
     case "ArrowUp":
-      if (!tKeys.rotateCWHeld) {
-        tPlayerRotate(1);
-      }
+      if (!tKeys.rotateCWHeld) tPlayerRotate(1);
       tKeys.rotateCWHeld = true;
       break;
 
-    // Rotate CCW
+    // Rotate CCW = Down
     case "ArrowDown":
-      if (!tKeys.rotateCCHeld) {
-        tPlayerRotate(-1);
-      }
+      if (!tKeys.rotateCCHeld) tPlayerRotate(-1);
       tKeys.rotateCCHeld = true;
       break;
 
-    // Hard drop
+    // Hard Drop
     case "Space":
       event.preventDefault();
-      if (!tKeys.hardDropHeld) {
-        tPlayerHardDrop();
-      }
+      if (!tKeys.hardDropHeld) tPlayerHardDrop();
       tKeys.hardDropHeld = true;
       break;
 
@@ -512,9 +505,7 @@ document.addEventListener("keydown", (event) => {
     case "ShiftLeft":
     case "ShiftRight":
     case "KeyC":
-      if (!tKeys.holdHeld) {
-        tHoldPiece();
-      }
+      if (!tKeys.holdHeld) tHoldPiece();
       tKeys.holdHeld = true;
       break;
   }
@@ -571,34 +562,37 @@ function tUpdate() {
     tPlayerDrop();
   }
 
-  // Manual left/right repeat
+  // --- Horizontal DAS + ARR ---
   if (tKeys.left && !tKeys.right) {
-  if (now - dasTimer > DAS_DELAY) {
-    if (now - arrTimer > ARR_DELAY) {
-      tPlayerMove(-1);
-      arrTimer = now;
+    if (performance.now() - dasTimer > DAS_DELAY) {
+      if (performance.now() - arrTimer > ARR_DELAY) {
+        tPlayerMove(-1);
+        arrTimer = performance.now();
+      }
     }
   }
-} else if (tKeys.right && !tKeys.left) {
-  if (now - dasTimer > DAS_DELAY) {
-    if (now - arrTimer > ARR_DELAY) {
-      tPlayerMove(1);
-      arrTimer = now;
+  else if (tKeys.right && !tKeys.left) {
+    if (performance.now() - dasTimer > DAS_DELAY) {
+      if (performance.now() - arrTimer > ARR_DELAY) {
+        tPlayerMove(1);
+        arrTimer = performance.now();
+      }
     }
   }
-} else {
-  dasTimer = now;
-  arrTimer = now;
-}
+  else {
+    dasTimer = performance.now();
+    arrTimer = performance.now();
+  }
 
-  // Soft drop repeat
+  // --- CLEAN Soft Drop ---
   if (tKeys.down) {
-    if (now - tLastSoftDropTime > SOFT_DROP_REPEAT_DELAY) {
+    if (performance.now() - tLastSoftDropTime > SOFT_DROP_REPEAT_DELAY) {
       tPlayerDrop();
-      tLastSoftDropTime = now;
+      tLastSoftDropTime = performance.now();
     }
-  } else {
-    tLastSoftDropTime = now;
+  }
+  else {
+    tLastSoftDropTime = performance.now();
   }
 
   tDraw();
