@@ -4,7 +4,7 @@
 
 const T_COLS = 10;
 const T_ROWS = 20;
-const T_BLOCK_SIZE = 24; // pixels per block
+const T_BLOCK_SIZE = 36; // pixels per block
 const T_DROP_INTERVAL_START = 800; // ms
 
 const tCanvas = document.getElementById("tetris-canvas");
