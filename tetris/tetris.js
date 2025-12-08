@@ -4,7 +4,8 @@
 
 const T_COLS = 10;
 const T_ROWS = 20;
-const T_BLOCK_SIZE = 36; // pixels per block
+const T_BLOCK_SIZE = 36; // or 24, 32, etc.
+
 const T_DROP_INTERVAL_START = 800; // ms
 
 const tCanvas = document.getElementById("tetris-canvas");
@@ -106,24 +107,47 @@ const tPlayer = {
   score: 0
 };
 
-// indexes into T_SHAPES
+// shape indices (0–6) using 7-bag randomizer
 let tCurrentShapeIndex = null;
 let tNextShapeIndex = null;
 let tHoldShapeIndex = null;
 
+// 7-bag state
+let tBag = [];
+
 let tHasHeldThisTurn = false;
 let tDropCounter = 0;
-let tLastTime = 0;
+let tLastTime = performance.now();
 let tDropInterval = T_DROP_INTERVAL_START;
 let tRunning = true;
 
 // =====================
-//    PIECE MANAGEMENT
+//    7-BAG RANDOMIZER
 // =====================
 
-function tRandomShapeIndex() {
-  return (Math.random() * T_SHAPES.length) | 0;
+function tShuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = (Math.random() * (i + 1)) | 0;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
 }
+
+function tRefillBag() {
+  tBag = [0, 1, 2, 3, 4, 5, 6];
+  tShuffleArray(tBag);
+}
+
+// Draw next piece from bag (guarantees each 7 once before repeat)
+function tNextFromBag() {
+  if (tBag.length === 0) {
+    tRefillBag();
+  }
+  return tBag.pop();
+}
+
+// =====================
+//    PIECE MANAGEMENT
+// =====================
 
 function tSpawnCurrentPiece() {
   tPlayer.matrix = T_SHAPES[tCurrentShapeIndex].map((row) => row.slice());
@@ -131,7 +155,7 @@ function tSpawnCurrentPiece() {
   tPlayer.pos.x =
     ((tArena[0].length / 2) | 0) - ((tPlayer.matrix[0].length / 2) | 0);
 
-  tHasHeldThisTurn = false;
+  tHasHeldThisTurn = false; // allow hold once for this piece
 
   if (tCollide(tArena, tPlayer)) {
     tStatusEl.textContent = "Game Over";
@@ -141,32 +165,34 @@ function tSpawnCurrentPiece() {
 }
 
 function tInitPieces() {
-  tCurrentShapeIndex = tRandomShapeIndex();
-  tNextShapeIndex = tRandomShapeIndex();
+  tRefillBag();
+  tCurrentShapeIndex = tNextFromBag();
+  tNextShapeIndex = tNextFromBag();
   tHoldShapeIndex = null;
   tSpawnCurrentPiece();
   tUpdatePreviews();
 }
 
 function tResetPlayer() {
-  // current piece becomes "next"
   tCurrentShapeIndex = tNextShapeIndex;
-  tNextShapeIndex = tRandomShapeIndex();
+  tNextShapeIndex = tNextFromBag();
   tSpawnCurrentPiece();
   tUpdatePreviews();
 }
 
 function tHoldPiece() {
   if (!tRunning) return;
-  if (tHasHeldThisTurn) return; // only once per new piece
+  if (tHasHeldThisTurn) return; // LIMIT: once per spawned piece
+
+  tHasHeldThisTurn = true; // important! prevents unlimited hold
 
   if (tHoldShapeIndex === null) {
-    // First time: move current to hold, pull in next
+    // First time: move current to hold, pull new from NEXT
     tHoldShapeIndex = tCurrentShapeIndex;
     tCurrentShapeIndex = tNextShapeIndex;
-    tNextShapeIndex = tRandomShapeIndex();
+    tNextShapeIndex = tNextFromBag();
   } else {
-    // Swap current with hold
+    // Swap current with held
     const temp = tCurrentShapeIndex;
     tCurrentShapeIndex = tHoldShapeIndex;
     tHoldShapeIndex = temp;
@@ -177,7 +203,7 @@ function tHoldPiece() {
 }
 
 // =====================
-//     COLLISION & MERGE
+//   COLLISION & MERGE
 // =====================
 
 function tCollide(board, player) {
@@ -223,7 +249,7 @@ function tMerge(board, player) {
 }
 
 // =====================
-//     LINE CLEAR & SCORE
+//    LINE CLEAR & SCORE
 // =====================
 
 function tArenaSweep() {
@@ -258,7 +284,7 @@ function tUpdateHighScore() {
 }
 
 // =====================
-//        MOVEMENT
+//       MOVEMENT
 // =====================
 
 function tPlayerDrop() {
@@ -410,21 +436,164 @@ function tDraw() {
 }
 
 // =====================
+//  INPUT (NO DELAY)
+// =====================
+
+// We track keys ourselves instead of relying on OS key-repeat
+const tKeys = {
+  left: false,
+  right: false,
+  down: false,
+  rotateCWHeld: false,
+  rotateCCHeld: false,
+  hardDropHeld: false,
+  holdHeld: false
+};
+
+let tLastHorizontalMoveTime = 0;
+let tLastSoftDropTime = 0;
+
+// Lower = faster side movement
+const HORIZONTAL_REPEAT_DELAY = 50; // ms between moves when key held
+const SOFT_DROP_REPEAT_DELAY = 100;  // ms between auto drops when key held
+
+document.addEventListener("keydown", (event) => {
+  if (!tRunning) return;
+
+  switch (event.code) {
+    case "ArrowLeft":
+      if (!tKeys.left) {
+        tPlayerMove(-1); // instant
+      }
+      tKeys.left = true;
+      break;
+
+    case "ArrowRight":
+      if (!tKeys.right) {
+        tPlayerMove(1); // instant
+      }
+      tKeys.right = true;
+      break;
+
+    case "KeyX":
+      if (!tKeys.down) {
+        tPlayerDrop(); // instant
+      }
+      tKeys.down = true;
+      break;
+
+    // Rotate CW
+    case "ArrowUp":
+      if (!tKeys.rotateCWHeld) {
+        tPlayerRotate(1);
+      }
+      tKeys.rotateCWHeld = true;
+      break;
+
+    // Rotate CCW
+    case "ArrowDown":
+      if (!tKeys.rotateCCHeld) {
+        tPlayerRotate(-1);
+      }
+      tKeys.rotateCCHeld = true;
+      break;
+
+    // Hard drop
+    case "Space":
+      event.preventDefault();
+      if (!tKeys.hardDropHeld) {
+        tPlayerHardDrop();
+      }
+      tKeys.hardDropHeld = true;
+      break;
+
+    // Hold
+    case "ShiftLeft":
+    case "ShiftRight":
+    case "KeyC":
+      if (!tKeys.holdHeld) {
+        tHoldPiece();
+      }
+      tKeys.holdHeld = true;
+      break;
+  }
+});
+
+document.addEventListener("keyup", (event) => {
+  switch (event.code) {
+    case "ArrowLeft":
+      tKeys.left = false;
+      break;
+    case "ArrowRight":
+      tKeys.right = false;
+      break;
+    case "ArrowDown":
+      tKeys.down = false;
+      break;
+
+    case "ArrowUp":
+      tKeys.rotateCWHeld = false;
+      break;
+    case "ArrowDown":
+      tKeys.rotateCCHeld = false;
+      break;
+
+    case "Space":
+      tKeys.hardDropHeld = false;
+      break;
+
+    case "ShiftLeft":
+    case "ShiftRight":
+    case "KeyC":
+      tKeys.holdHeld = false;
+      break;
+  }
+});
+
+// =====================
 //       GAME LOOP
 // =====================
 
-function tUpdate(time = 0) {
-  const deltaTime = time - tLastTime;
-  tLastTime = time;
+function tUpdate() {
+  const now = performance.now();
+  const deltaTime = now - tLastTime;
+  tLastTime = now;
 
   if (!tRunning) {
     tDraw();
     return;
   }
 
+  // Gravity
   tDropCounter += deltaTime;
   if (tDropCounter > tDropInterval) {
     tPlayerDrop();
+  }
+
+  // Manual left/right repeat
+  if (tKeys.left && !tKeys.right) {
+    if (now - tLastHorizontalMoveTime > HORIZONTAL_REPEAT_DELAY) {
+      tPlayerMove(-1);
+      tLastHorizontalMoveTime = now;
+    }
+  } else if (tKeys.right && !tKeys.left) {
+    if (now - tLastHorizontalMoveTime > HORIZONTAL_REPEAT_DELAY) {
+      tPlayerMove(1);
+      tLastHorizontalMoveTime = now;
+    }
+  } else {
+    // reset timer when no horizontal key is actively moving
+    tLastHorizontalMoveTime = now;
+  }
+
+  // Soft drop repeat
+  if (tKeys.down) {
+    if (now - tLastSoftDropTime > SOFT_DROP_REPEAT_DELAY) {
+      tPlayerDrop();
+      tLastSoftDropTime = now;
+    }
+  } else {
+    tLastSoftDropTime = now;
   }
 
   tDraw();
@@ -432,42 +601,7 @@ function tUpdate(time = 0) {
 }
 
 // =====================
-//        INPUT
-// =====================
-
-document.addEventListener("keydown", (event) => {
-  if (!tRunning) return;
-
-  switch (event.code) {
-    case "ArrowLeft":
-      tPlayerMove(-1);
-      break;
-    case "ArrowRight":
-      tPlayerMove(1);
-      break;
-    case "KeyX":
-      tPlayerDrop();
-      break;
-    case "ArrowUp":
-      tPlayerRotate(1);
-      break;
-    case "ArrowDown":
-      tPlayerRotate(-1);
-      break;
-    case "Space":
-      event.preventDefault();
-      tPlayerHardDrop();
-      break;
-    case "ShiftLeft":
-    case "ShiftRight":
-    case "KeyC":
-      tHoldPiece();
-      break;
-  }
-});
-
-// =====================
-//       INIT
+//         INIT
 // =====================
 
 tInitPieces();
