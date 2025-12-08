@@ -448,10 +448,10 @@ document.addEventListener("keydown", (event) => {
     case "ArrowDown":
       tPlayerDrop();
       break;
-    case "KeyQ":
+    case "ArrowDown":
       tPlayerRotate(-1);
       break;
-    case "KeyW":
+    case "ArrowDown":
       tPlayerRotate(1);
       break;
     case "Space":
