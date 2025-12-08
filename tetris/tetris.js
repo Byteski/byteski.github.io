@@ -454,8 +454,9 @@ let tLastHorizontalMoveTime = 0;
 let tLastSoftDropTime = 0;
 
 // Lower = faster side movement
-const HORIZONTAL_REPEAT_DELAY = 100; // ms between moves when key held
-const SOFT_DROP_REPEAT_DELAY = 100;  // ms between auto drops when key held
+const DAS_DELAY = 133;   // ms before sideways auto-repeat starts
+const ARR_DELAY = 33;    // ms between sideways moves after DAS
+const SOFT_DROP_REPEAT_DELAY = 30; // ms between soft drops
 
 document.addEventListener("keydown", (event) => {
   if (!tRunning) return;
@@ -572,19 +573,23 @@ function tUpdate() {
 
   // Manual left/right repeat
   if (tKeys.left && !tKeys.right) {
-    if (now - tLastHorizontalMoveTime > HORIZONTAL_REPEAT_DELAY) {
+  if (now - dasTimer > DAS_DELAY) {
+    if (now - arrTimer > ARR_DELAY) {
       tPlayerMove(-1);
-      tLastHorizontalMoveTime = now;
+      arrTimer = now;
     }
-  } else if (tKeys.right && !tKeys.left) {
-    if (now - tLastHorizontalMoveTime > HORIZONTAL_REPEAT_DELAY) {
-      tPlayerMove(1);
-      tLastHorizontalMoveTime = now;
-    }
-  } else {
-    // reset timer when no horizontal key is actively moving
-    tLastHorizontalMoveTime = now;
   }
+} else if (tKeys.right && !tKeys.left) {
+  if (now - dasTimer > DAS_DELAY) {
+    if (now - arrTimer > ARR_DELAY) {
+      tPlayerMove(1);
+      arrTimer = now;
+    }
+  }
+} else {
+  dasTimer = now;
+  arrTimer = now;
+}
 
   // Soft drop repeat
   if (tKeys.down) {
