@@ -528,7 +528,7 @@ document.addEventListener("keyup", (event) => {
     case "ArrowRight":
       tKeys.right = false;
       break;
-    case "ArrowDown":
+    case "KeyX":
       tKeys.down = false;
       break;
 
