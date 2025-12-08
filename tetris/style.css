@@ -1,0 +1,137 @@
+/* Global page styling */
+body {
+  margin: 0;
+  padding: 16px;
+  background: #111;
+  color: #eee;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+/* Title */
+h1 {
+  margin: 0 0 12px;
+  font-size: 22px;
+  text-align: center;
+}
+
+/* Top bar */
+#top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+#name-box {
+  display: flex;
+  gap: 8px;
+}
+
+#player-name-display {
+  font-weight: bold;
+  color: #ffd95e;
+}
+
+#room-info strong {
+  color: #7cd6ff;
+}
+
+/* Layout */
+#layout {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* Game column */
+#game-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Canvas */
+#tetris-canvas {
+  border: 2px solid #555;
+  background: #000;
+  image-rendering: pixelated;
+}
+
+/* Game info */
+#game-info {
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 260px;
+  margin-top: 10px;
+}
+
+.score {
+  margin: 4px 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #bbb;
+}
+
+.game-over {
+  color: #ff6161;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+/* Sidebar (players list) */
+#sidebar {
+  min-width: 200px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #333;
+}
+
+#sidebar h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+#players-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  font-size: 13px;
+}
+
+#players-list li {
+  padding: 4px 6px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  background: #222;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#players-list li.you {
+  background: #2a3b20;
+}
+
+.player-name {
+  font-weight: 500;
+}
+
+.player-score {
+  font-size: 12px;
+  color: #ddd;
+}
+
+.player-status {
+  font-size: 11px;
+  margin-left: 6px;
+  opacity: 0.8;
+}
