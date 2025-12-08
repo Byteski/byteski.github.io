@@ -445,14 +445,14 @@ document.addEventListener("keydown", (event) => {
     case "ArrowRight":
       tPlayerMove(1);
       break;
-    case "ArrowDown":
+    case "KeyX":
       tPlayerDrop();
       break;
     case "ArrowUp":
-      tPlayerRotate(-1);
-      break;
-    case "ArrowUp":
       tPlayerRotate(1);
+      break;
+    case "ArrowDown":
+      tPlayerRotate(-1);
       break;
     case "Space":
       event.preventDefault();
