@@ -25,19 +25,26 @@ h1 {
   text-align: center;
 }
 
+#side-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;           /* space between Hold & Next */
+  align-items: center; /* center them vertically under each other */
+}
+
 /* Game container */
 #tetris-wrap {
   display: grid;
-  gap: 24px;
+  gap: 20px;
   grid-template-columns: 1fr auto 1fr;
   align-items: flex-start;
-  padding: 16px 20px;
+  padding: 16px 10px;
   border-radius: 12px;
 
   background: rgba(0, 0, 0, 0.65); /* dark glass effect */
   backdrop-filter: blur(6px);
 
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 1.0);
 }
 
 /* Canvas styling */
@@ -65,13 +72,6 @@ h1 {
 .score.small {
   font-size: 13px;
   color: #ccc;
-}
-
-/* Preview area */
-#preview-wrap {
-  display: flex;
-  gap: 8px;
-  margin: 10px 0 12px;
 }
 
 .preview-block {
@@ -116,3 +116,21 @@ h1 {
   font-weight: bold;
   margin-top: 8px;
 }
+
+#restart-btn {
+  margin-top: 8px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  background: #3a86ff;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: none; /* hidden until game over */
+}
+
+#restart-btn:hover {
+  background: #2563d6;
+}
+

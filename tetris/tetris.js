@@ -13,6 +13,7 @@ const tCtx = tCanvas.getContext("2d");
 const tScoreEl = document.getElementById("tetris-score");
 const tHighScoreEl = document.getElementById("tetris-highscore");
 const tStatusEl = document.getElementById("tetris-status");
+const tRestartBtn = document.getElementById("restart-btn");
 
 const tHoldCanvas = document.getElementById("hold-canvas");
 const tNextCanvas = document.getElementById("next-canvas");
@@ -159,6 +160,10 @@ function tSpawnCurrentPiece() {
     tStatusEl.textContent = "Game Over";
     tRunning = false;
     tUpdateHighScore();
+
+    if (tRestartBtn) {
+    tRestartBtn.style.display = "inline-block";
+    }
   }
 }
 
@@ -563,6 +568,51 @@ document.addEventListener("keyup", (event) => {
 //       GAME LOOP
 // =====================
 
+function resetGame() {
+  // Clear the arena
+  for (let y = 0; y < tArena.length; y++) {
+    tArena[y].fill(0);
+  }
+
+  // Reset player
+  tPlayer.score = 0;
+  tScoreEl.textContent = tPlayer.score;
+  tStatusEl.textContent = "";
+
+  // Reset flags & timers
+  tHasHeldThisTurn = false;
+  tDropCounter = 0;
+  tDropInterval = T_DROP_INTERVAL_START;
+  tRunning = true;
+
+  // Reset key states / ignore flags if you use them
+  if (typeof tKeys !== "undefined") {
+    tKeys.left = false;
+    tKeys.right = false;
+    tKeys.down = false;
+    tKeys.rotateCWHeld = false;
+    tKeys.rotateCCHeld = false;
+    tKeys.hardDropHeld = false;
+    tKeys.holdHeld = false;
+  }
+  if (typeof tIgnoreHeldSoftDrop !== "undefined") tIgnoreHeldSoftDrop = false;
+  if (typeof tIgnoreHeldHardDrop !== "undefined") tIgnoreHeldHardDrop = false;
+  if (typeof tLastSoftDropTime !== "undefined")
+    tLastSoftDropTime = performance.now();
+
+  // Reset pieces / bag / hold / previews
+  tInitPieces();
+
+  // Hide restart button again
+  if (tRestartBtn) {
+    tRestartBtn.style.display = "none";
+  }
+
+  // Kick the loop again if it stopped
+  tLastTime = performance.now();
+  requestAnimationFrame(tUpdate);
+}
+
 function tUpdate() {
   const now = performance.now();
   const deltaTime = now - tLastTime;
@@ -614,6 +664,10 @@ function tUpdate() {
 
   tDraw();
   requestAnimationFrame(tUpdate);
+
+  if (tRestartBtn) {
+  tRestartBtn.addEventListener("click", resetGame);
+  }
 }
 
 // =====================

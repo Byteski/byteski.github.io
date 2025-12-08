@@ -7,38 +7,42 @@
 </head>
 <body>
   <div id="tetris-wrap">
-    <canvas id="tetris-canvas" width="360" height="720"></canvas>
+    <!-- LEFT: Hold + Next stacked -->
+  <div id="side-left">
+    <div class="preview-block">
+      <div class="preview-title">Hold</div>
+      <canvas id="hold-canvas" width="128" height="128"></canvas>
+    </div>
 
-    <div id="tetris-info">
-      <div class="score">
-        Score: <span id="tetris-score">0</span>
-      </div>
-      <div class="score small">
-        High Score: <span id="tetris-highscore">0</span>
-      </div>
+    <div class="preview-block">
+      <div class="preview-title">Next</div>
+      <canvas id="next-canvas" width="128" height="128"></canvas>
+    </div>
+  </div>
 
-      <div id="preview-wrap">
-        <div class="preview-block">
-          <div class="preview-title">Hold</div>
-          <canvas id="hold-canvas" width="96" height="96"></canvas>
-        </div>
-        <div class="preview-block">
-          <div class="preview-title">Next</div>
-          <canvas id="next-canvas" width="96" height="96"></canvas>
-        </div>
-      </div>
+  <!-- CENTER: main board -->
+  <canvas id="tetris-canvas" width="360" height="720"></canvas>
+
+  <!-- RIGHT: score, controls, etc. -->
+  <div id="tetris-info">
+    <div class="score">
+      Score: <span id="tetris-score">0</span>
+    </div>
+    <div class="score small">
+      High Score: <span id="tetris-highscore">0</span>
+    </div>
 
       <div>[Controls]</div>
       <ul>
-        <li>Movement: ⬅ / ➡ (Left & Right Arrow)</li>
+        <li>Movement: ⬅ / ➡ (L/R Arrow)</li>
         <li>Soft Drop: X</li>
-        <li>Hard Drop: Space</li>
-        <li>Rotation: ⬆ / ⬇ (Up & Down Arrow)</li>
+        <li>Hard Drop: Spacebar</li>
+        <li>Rotation: ⬆ / ⬇ (U/D Arrow)</li>
         <li>Hold Piece: Shift / C</li>
       </ul>
-
-      <div class="hint">Refresh the page to restart :D</div>
       <div id="tetris-status" class="game-over"></div>
+
+      <button id="restart-btn" type="button">RESTART</button>
     </div>
   </div>
 
