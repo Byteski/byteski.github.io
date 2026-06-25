@@ -144,6 +144,180 @@
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
+    .command-center {
+      width: min(620px, calc(100% - 32px));
+      margin: 40px auto 70px;
+      text-align: center;
+      position: relative;
+      z-index: 9999;
+      overflow: visible;
+    }
+
+    .command-menu {
+      display: none;
+      margin-top: 0;
+      text-align: left;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(5,7,12,.90);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      z-index: 9999;
+    }
+
+    .command-menu.show {
+      display: block;
+    }
+
+    .command-option {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px 14px;
+      color: rgba(255,255,255,.72);
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+
+    .command-option.last-child {
+      border-bottom: none;
+    }
+
+    .command-option:hover,
+    .command-option.active {
+      background: rgba(124,158,255,.18);
+      color: white;
+    }
+
+    .command-name {
+      color: #7c9eff;
+      font-weight: 800;
+      font-family: consolas, monospace;
+    }
+
+    .command-label {
+      color: rgba(255,255,255,.55);
+      font-size: 14px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .command-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(5,7,12,.62);
+      backdrop-filter: blur(16px);
+      box-shadow:
+        0 20px 60px rgba(0,0,0,.35),
+        inset 0 1px 0 rgba(255,255,255,.08);
+    }
+
+    .command-box input {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .command-box input::placeholder {
+      color: rgba(255,255,255,.32);
+    }
+
+    .command-box.error {
+      animation: commandShake .28s linear 2;
+      border-color: rgba(255,93,115,.65);
+    }
+
+    .command-box.teleport {
+      border-color: rgba(124,158,255,.7);
+      box-shadow:
+        0 0 35px rgba(124,158,255,.22),
+        0 20px 60px rgba(0,0,0,.35);
+    }
+
+    .command-desc {
+      color: rgba(255,255,255,.45);
+      font-size: 13px;
+    }
+
+    @keyframes commandShake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-3px); }
+      100% { transform: translateX(0); }
+    }
+
+    .main-section {
+      width: min(1000px, calc(100% - 32px));
+      margin: 0 auto 80px;
+      padding: 15px 20px;
+      border-radius: 28px;
+      border: 1px solid rgba(255,255,255,.11);
+      background: rgba(255,255,255,.045);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 30px 90px rgba(0,0,0,.24);
+    }
+
+    .main-section h2 {
+      margin: 0 0 16px;
+      font-size: clamp(36px, 7vw, 78px);
+      letter-spacing: -.07em;
+      line-height: .9;
+    }
+
+    .main-section p {
+      max-width: 720px;
+      color: rgba(255,255,255,.72);
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .social-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .social-grid a {
+      color: white;
+      text-decoration: none;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.11);
+      background: rgba(255,255,255,.055);
+      transition: .18s ease;
+    }
+
+    .social-grid a:hover {
+      transform: translateY(-2px);
+      background: rgba(124,158,255,.16);
+    }
+
+    @media (max-width: 760px) {
+      .social-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .main-section {
+        padding: 44px 22px;
+      }
+    }
+
     /* Sections */
     section{margin-top:40px}
     .section-title{font-size:22px; margin:0 0 12px; color:#aebaff}
@@ -157,6 +331,7 @@
     /* Small helpers */
     .muted{color:var(--muted)}
     .tag{font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,.04)}
+
   </style>
 </head>
 <body>
@@ -169,8 +344,22 @@
       <div class="brand">
         <div class="logo" aria-hidden="true"></div>
       </div>
+      <div class="command-center">
+        <div class="command-label">Search to get started.</div>
+
+          <div class="command-box">
+            <input
+              id="commandInput"
+              type="text"
+              placeholder="/..."
+              autocomplete="off"
+              spellcheck="false"
+            >
+          </div>
+          <div class="command-menu" id="commandMenu"></div>
+      </div>
       <nav>
-        <a class="pill" href="#links">Links</a>
+        <a class="pill" href="#socials">Socials</a>
         <a class="pill" href="#about">About</a>
         <a class="pill" href="#contact">Contact</a>
         <a class="pill" href="/stats">Stats</a>
@@ -178,64 +367,27 @@
       </nav>
     </div>
 
-    <div class="command-center">
-      <div class="command-label">Type the commands!</div>
-    <div class="command-box">
-      <span class="command-slash">/</span>
-        <input
-          id="commandInput"
-          type="text"
-          placeholder="type command..."
-          autocomplete="off"
-          spellcheck="false"
-        >
-    </div>
-    <div class="command-suggestions">
-      <span>/about</span>
-      <span>/socials</span>
-      <span>/typing</span>
-      <span>/stats</span>
-      <span>/discord</span>
-    </div>
-  </div>
-
     <!-- Hero -->
     <section class="hero">
       <div class="card panel">
         <h2 class="title">Hi. I'm Brianski.</h2>
-        <p class="subtitle">I like Minecraft. And I edit too much. Or maybe not. Yeah, That's it.</p>
-        <div class="about"  style="display: flex;">
-          <div class="card">
-            <h3>What Do I Do?</h3>
-            <ul class="list">
-              <li><span class="tag">Create</span> Minecraft Short‑Forms & Videos</li>
-              <li><span class="tag">Stream</span> Minecraft Speedrun & Gaming</li>
-              <li><span class="tag">Make</span> Villager AI Sings & etc.</li>
-            </ul>
-          </div>
-          <div class="card">
-            <h3>Lately, I Did</h3>
-            <ul class="list">
-              <li>Try Minecraft Phonk Edit Mod</li>
-              <li>Survive in No_Moon.jar Mod</li>
-              <li>24/7 Stream for Copper Cape Drop</li>
-              <li>Watch Minecraft Videos</li>
-            </ul>
+        <p class="subtitle">I like Minecraft. Well, I edit too much. Or maybe not.</p>
+        <p class="subtitle">Also, it's not just a game. It's our childhood, and part of life.</p>
           </div>
         </div>
       </div>
 
     </section>
 
-    <!-- Links -->
-    <section id="links">
-      <h3 class="section-title">Links</h3>
+    <!-- socials -->
+    <section id="socials" class="main-section">
+      <h3 class="section-title">Socials</h3>
         <div class="grid card">
           <div class="panel linkcard">
           <div class="link-info">
           <div>
             <strong>YouTube</strong>
-        <div class="muted">Minecraft Shorts, Experiments, and (Horror) Mods!</div>
+        <div class="muted">Minecraft Horror & News Shorts!</div>
           </div>
             <a class="btn primary" href="https://youtube.com/@BrianskiMC" target="_blank" rel="noopener">Subscribe</a>
           </div>
@@ -246,7 +398,7 @@
             <strong>Twitter</strong>
             <div class="muted">Funny Minecraft Memes & NPC Dialogues :D</div>
           </div>
-            <a class="btn primary" href="https://twittter.com/Brianski234" target="_blank" rel="noopener">Follow</a>
+            <a class="btn primary" href="https://twittter.com/BrianskiYT" target="_blank" rel="noopener">Follow</a>
           </div>
         </div>
         <div class="panel linkcard">
@@ -271,7 +423,7 @@
           <div class="link-info">
           <div>
             <strong>Discord</strong>
-            <div class="muted">Brianski's Cozy Minecraft Community.</div>
+            <div class="muted">Brianski's Cozy Minecraft Community!</div>
           </div>
             <a class="btn primary" href="https://brianski.com/discord" target="_blank" rel="noopener">Join</a>
           </div>
@@ -280,7 +432,7 @@
           <div class="link-info">
           <div>
             <strong>Linkpage</strong>
-            <div class="muted">Brianski's Old Linkpage Before This Website :(</div>
+            <div class="muted">Brianski's Old Linkpage Before This Website!</div>
           </div>
             <a class="btn primary" href="https://brianski.carrd.co" target="_blank" rel="noopener">Visit</a>
           </div>
@@ -289,7 +441,7 @@
     </section>
 
     <!-- Contact / About -->
-    <section id="about">
+    <section id="about" class="main-section">
       <h3 class="section-title">About</h3>
       <div class="card panel">
         <p><strong>Brianski</strong> is a content creator on YouTube whose channel focuses heavily on the game Minecraft, especially through short-form videos that explore mods, experiments, and quirky in-game mechanics.</p>
@@ -300,7 +452,7 @@
       </div>
     </section>
 
-    <section id="contact">
+    <section id="contact" class="main-section">
       <h3 class="section-title">Contact</h3>
       <div class="card panel">
         <p>For Business: <a href="mailto:brianski.business@gmail.com">brianski.business@gmail.com</a></p>
@@ -433,15 +585,212 @@
   document.addEventListener('DOMContentLoaded', () => {
     loadStats();
     setInterval(loadStats, 120000); // refresh every 2 minutes
-  }); 
+  });
+
+  const commandInput = document.getElementById("commandInput");
+  const commandBox = document.querySelector(".command-box");
+  const commandMenu = document.getElementById("commandMenu");
+
+    const commands = {
+      about: {
+        type: "section",
+        target: "#about",
+        desc: "go to about section"
+      },
+      socials: {
+        type: "section",
+        target: "#socials",
+        desc: "go to socials section"
+      },
+      social: {
+        type: "section",
+        target: "#socials",
+        desc: "go to socials section"
+      /*},
+      typing: {
+        type: "page",
+        target: "/typing/"*/
+      },
+      stats: {
+        type: "page",
+        target: "/stats",
+        desc: "go to stats page"
+      },
+      discord: {
+        type: "page",
+        target: "/discord",
+        desc: "redirect to discord invite"
+      },
+      contact: {
+        type: "page",
+        target: "#contact",
+        desc: "go to contact section"
+      },
+      home: {
+        type: "page",
+        target: "/",
+        desc: "go to main"
+      }
+    };
+
+  let selectedIndex = 0;
+  let currentMatches = [];
+
+  function getQuery() {
+    let value = commandInput.value.trim().toLowerCase();
+
+    if (value.startsWith("/")) {
+      value = value.slice(1);
+    }
+
+    return value;
+  }
+
+  function showCommandMenu() {
+    const raw = commandInput.value.trim();
+
+    if (!raw.startsWith("/")) {
+      commandMenu.classList.remove("show");
+      commandMenu.innerHTML = "";
+      return;
+    }
+
+    const query = getQuery();
+
+    currentMatches = Object.keys(commands).filter(cmd =>
+      cmd.startsWith(query)
+    );
+
+    if (currentMatches.length === 0) {
+      commandMenu.innerHTML = `
+        <div class="command-option">
+          <span class="command-name">unknown command</span>
+          <span class="command-desc">try /about</span>
+        </div>
+      `;
+      commandMenu.classList.add("show");
+      return;
+    }
+
+    selectedIndex = Math.min(selectedIndex, currentMatches.length - 1);
+
+    commandMenu.innerHTML = currentMatches.map((cmd, index) => `
+      <div class="command-option ${index === selectedIndex ? "active" : ""}" data-command="${cmd}">
+        <span class="command-name">/${cmd}</span>
+        <span class="command-desc">${commands[cmd].desc}</span>
+      </div>
+    `).join("");
+
+    commandMenu.classList.add("show");
+
+    document.querySelectorAll(".command-option[data-command]").forEach(option => {
+      option.addEventListener("click", () => {
+        runCommand(option.dataset.command);
+      });
+    });
+  }
+
+  function runCommand(rawValue) {
+    let value = rawValue.trim().toLowerCase();
+
+    if (value.startsWith("/")) {
+      value = value.slice(1);
+    }
+
+    const command = commands[value];
+
+    if (!command) {
+      commandInput.value = "";
+      commandInput.placeholder = "unknown command...";
+      commandBox.classList.add("error");
+      commandMenu.classList.remove("show");
+
+      setTimeout(() => {
+        commandInput.placeholder = "type command...";
+        commandBox.classList.remove("error");
+      }, 900);
+
+      return;
+    }
+
+    commandBox.classList.add("teleport");
+    commandInput.value = "teleporting...";
+    commandMenu.classList.remove("show");
+
+    setTimeout(() => {
+      if (command.type === "section") {
+        const section = document.querySelector(command.target);
+
+        if (section) {
+          section.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        }
+
+        commandInput.value = "";
+        commandBox.classList.remove("teleport");
+      }
+
+      if (command.type === "page") {
+        window.location.href = command.target;
+      }
+    }, 350);
+  }
+
+  commandInput.addEventListener("input", () => {
+    selectedIndex = 0;
+    showCommandMenu();
+  });
+
+  commandInput.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+
+      if (currentMatches.length > 0) {
+        selectedIndex = (selectedIndex + 1) % currentMatches.length;
+        showCommandMenu();
+      }
+    }
+
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+
+      if (currentMatches.length > 0) {
+        selectedIndex = (selectedIndex - 1 + currentMatches.length) % currentMatches.length;
+        showCommandMenu();
+      }
+    }
+
+    if (e.key === "Tab") {
+      if (currentMatches.length > 0 && commandInput.value.startsWith("/")) {
+        e.preventDefault();
+        commandInput.value = "/" + currentMatches[selectedIndex];
+        showCommandMenu();
+      }
+    }
+
+    if (e.key === "Enter") {
+      e.preventDefault();
+
+      if (currentMatches.length > 0 && commandInput.value.startsWith("/")) {
+        runCommand(currentMatches[selectedIndex]);
+      } else {
+        runCommand(commandInput.value);
+      }
+    }
+
+    if (e.key === "Escape") {
+      commandMenu.classList.remove("show");
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".command-center")) {
+      commandMenu.classList.remove("show");
+    }
+  });
+    
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
